@@ -84,7 +84,7 @@ class Jug {
         Node* emptyB(Node*);
         Node* PourA_B(Node*);
         Node* PourB_A(Node*);
-        string getMethodString(Node* prev, Node* curr);
+        string getMethodString(int num, Node* prev, Node* curr);
         int getMethodCost(Node* prev, Node* curr);
         //void checkWhichPtr_Using (Node*); USED FOR TEST
 };

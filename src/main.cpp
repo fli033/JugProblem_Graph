@@ -14,7 +14,7 @@ int main() {
     if (jug->solve(solution) != 1) {
         cout << "No Solution" << endl;
     } else {
-        cout << left << setw(20) << "METHOD" << left << setw(8) << "COST" << "STATUS" << endl;
+        cout << left << setw(20) << "METHOD" << left << setw(10) << "COST" << "STATUS" << endl;
         cout << solution << endl << endl;
     }
 

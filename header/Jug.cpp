@@ -57,7 +57,8 @@ int Jug::solve(string &solution) {//USE STACK TO TRACE THE STEPS, solutionNode->
         stackNode.pop();
         next = stackNode.top();
         costCount1 += getMethodCost(prev, next);
-        method1 = method1 + to_string(cost1_counter) + ". " + getMethodString(prev, next);
+        method1 = method1 + to_string(cost1_counter) + ". "
+                + getMethodString(cost1_counter, prev, next);
     }
 
     stackNode.pop();//pop last element in stack
@@ -73,7 +74,8 @@ int Jug::solve(string &solution) {//USE STACK TO TRACE THE STEPS, solutionNode->
         stackNode.pop();
         next = stackNode.top();
         costCount2 += getMethodCost(prev, next);
-        method2 = method2 + to_string(cost2_counter) + ". " + getMethodString(prev, next);
+        method2 = method2 + to_string(cost2_counter) + ". "
+                + getMethodString(cost2_counter, prev, next);
     }
 
     if (costCount1 < costCount2) {
@@ -304,33 +306,56 @@ Node *Jug::PourB_A(Node *n) {
     return pbaNode;
 }
 
-string Jug::getMethodString(Node *prev, Node *curr) {
+/*
+ * separate helper for getMethodString
+ */
+void fillBlank(string& str, int length, bool isStep) {
+    string space = "";
+    int spaceLength = length - str.length();
+    if (isStep) spaceLength = 5;
+    for (int i = 0; i < spaceLength; i++) {
+        space += " ";
+    }
+    str += space;
+    return;
+}
+
+string Jug::getMethodString(int num, Node *prev, Node *curr) {
     string command = "";
+    string step = "";
+    string cost = "";
+
+    if (num < 10) step += " ";
+    if (num < 100) step += "  ";
+
     if (curr == prev->fa) {
-        command = "FILL    A\t\t";
-        command += to_string(this->cfA) + "\t\t";
+        step += "FILL    A";
+        cost = to_string(this->cfA);
     }
     if (curr == prev->fb) {
-        command = "FILL    B\t\t";
-        command += to_string(this->cfB) + "\t\t";
+        step += "FILL    B";
+        cost += to_string(this->cfB);
     }
     if (curr == prev->ea) {
-        command = "EMPTY   A\t\t";
-        command += to_string(this->ceA) + "\t\t";
+        step += "EMPTY   A";
+        cost = to_string(this->ceA);
     }
     if (curr == prev->eb) {
-        command = "EMPTY   B\t\t";
-        command += to_string(this->ceB) + "\t\t";
+        step += "EMPTY   B";
+        cost = to_string(this->ceB);
     }
     if (curr == prev->pab) {
-        command = "POUR A->B\t\t";
-        command += to_string(this->cpAB) + "\t\t";
+        step += "POUR A->B";
+        cost = to_string(this->cpAB);
     }
     if (curr == prev->pba) {
-        command = "POUR B->A\t\t";
-        command += to_string(this->cpBA) + "\t\t";
+        step += "POUR B->A";
+        cost = to_string(this->cpBA);
     }
-    command = command + "(" + to_string(curr->a) + ", " + to_string(curr->b) + ")\n";
+    fillBlank(step, 20, true);
+    fillBlank(cost, 10, false);
+
+    command = step + cost + "(" + to_string(curr->a) + ", " + to_string(curr->b) + ")\n";
     return command;
 }
 
