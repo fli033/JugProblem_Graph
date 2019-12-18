@@ -78,16 +78,16 @@ int Jug::solve(string &solution) {//USE STACK TO TRACE THE STEPS, solutionNode->
                 + getMethodString(cost2_counter, prev, next);
     }
 
+    string msg_succ = "SUCCESS         ";
+    string cost_str = "";
+    solution = "\n" + msg_succ;
+
     if (costCount1 < costCount2) {
-        method1 += "\n";
-        method1 += "SUCCESS!\t\t\t";
-        method1 += "COST: " + to_string(costCount1);
-        solution = method1;
+        solution = method1 + solution + "COST: "
+                 + to_string(costCount1);
     } else {
-        method2 += "\n";
-        method2 += "SUCCESS!\t\t\t";
-        method2 += "COST: " + to_string(costCount2);
-        solution = method2;
+        solution = method2 + solution + "COST: "
+                 + to_string(costCount2);
     }
     return 1;
 }
