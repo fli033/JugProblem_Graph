@@ -25,7 +25,7 @@ Jug* setJugStats() {
     char choice;
     Jug* jug = nullptr;
 
-    cout << "Find the fastest way to solve the jug problem" << endl;
+    cout << "Solve The Jug Problem With The Cheapest Cost" << endl;
     cout << "the bigger jug has to be bigger than the target volume and less than 1000" << endl << endl;
 
     cout << "Enter small jug's volume: ";
