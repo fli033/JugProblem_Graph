@@ -41,6 +41,7 @@ public:
 };
 class Jug {
     public:
+        Jug(int, int, int);
         Jug(int,int,int,int,int,int,int,int,int);
 
         //solve is used to check input and find the solution if one exists

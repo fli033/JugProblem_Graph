@@ -1,8 +1,21 @@
 #include "Jug.h"
+#include "iomanip"
 #include <vector>
 
-Jug::Jug(int Ca, int Cb, int N, int cfA, int cfB, int ceA, int ceB, int cpAB, int cpBA)
-{
+Jug::Jug(int Ca, int Cb, int N) {
+    this->CapA = Ca;
+    this->CapB = Cb;
+    this->N = N;
+    this->cfA = 1;
+    this->cfB = 1;
+    this->ceA = 1;
+    this->ceB = 1;
+    this->cpAB = 1;
+    this->cpBA = 1;
+    root = nullptr;
+    solutionNode = nullptr;
+}
+Jug::Jug(int Ca, int Cb, int N, int cfA, int cfB, int ceA, int ceB, int cpAB, int cpBA) {
     this->CapA = Ca;
     this->CapB = Cb;
     this->N = N;
@@ -14,31 +27,9 @@ Jug::Jug(int Ca, int Cb, int N, int cfA, int cfB, int ceA, int ceB, int cpAB, in
     this->cpBA = cpBA;
     root = nullptr;
     solutionNode = nullptr;
-
-    /*
-    int intArray[SIZE_CHOICE_ARR] = {cfA, cfB, ceA, ceB, cpAB, cpBA};
-    string strArray[SIZE_CHOICE_ARR] = {"fa", "fb", "ea", "eb", "pab", "pba"};
-    int i = 0; int j = 0; int intTemp = 0; string strTemp = "";
-    for (i = 1; i < SIZE_CHOICE_ARR; ++i){
-        j = i;
-        while (j > 0 && intArray[j] > intArray[j - 1]){
-            intTemp = intArray[i];
-            strTemp = strArray[i];
-            intArray[j] = intArray[j - 1];
-            strArray[j] = strArray[j - 1];
-            intArray[j - 1] = intTemp;
-            strArray[j - 1] = strTemp;
-            --j;
-        }
-    }
-    for (i = 0; i < SIZE_CHOICE_ARR; i++){
-        arr_choice[i] = strArray[i];
-        cout << intArray[i] << " ";
-        cout << strArray[i] << endl;
-    }
-    */
 }
-int Jug::solve(string & solution) {//USE STACK TO TRACE THE STEPS, solutionNode->par
+
+int Jug::solve(string &solution) {//USE STACK TO TRACE THE STEPS, solutionNode->par
     solution = "";
     if (!isProblemValid()) return -1;
     buildGraph();
@@ -46,69 +37,79 @@ int Jug::solve(string & solution) {//USE STACK TO TRACE THE STEPS, solutionNode-
     //ELSE
     int costCount1 = 0;
     int costCount2 = 0;
+    int cost1_counter = 0;
+    int cost2_counter = 0;
     string method1 = "";
     string method2 = "";
-    Node* prev = nullptr;
-    Node* next = nullptr;
-    Node* cur = nullptr;
-    stack<Node*> stackNode;
+    Node *prev = nullptr;
+    Node *next = nullptr;
+    Node *cur = nullptr;
+    stack<Node *> stackNode;
     cur = solutionNode;
 
-    while (cur != nullptr){
+    while (cur != nullptr) {
         stackNode.push(cur);
         cur = cur->parent;
     }
-    while (stackNode.size() > 1){
+    while (stackNode.size() > 1) {
+        cost1_counter++;
         prev = stackNode.top();
         stackNode.pop();
         next = stackNode.top();
         costCount1 += getMethodCost(prev, next);
-        method1 += getMethodString(prev, next);
+        method1 = method1 + to_string(cost1_counter) + ". " + getMethodString(prev, next);
     }
-    method1 += "success " + to_string(costCount1);
+
     stackNode.pop();//pop last element in stack
 
     cur = secondSolution;
-    while (cur != nullptr){
+    while (cur != nullptr) {
         stackNode.push(cur);
         cur = cur->parent;
     }
-    while (stackNode.size() > 1){
+    while (stackNode.size() > 1) {
+        cost2_counter++;
         prev = stackNode.top();
         stackNode.pop();
         next = stackNode.top();
         costCount2 += getMethodCost(prev, next);
-        method2 += getMethodString(prev, next);
+        method2 = method2 + to_string(cost2_counter) + ". " + getMethodString(prev, next);
     }
-    method2 += "success " + to_string(costCount2);
 
-    if (costCount1 < costCount2){
+    if (costCount1 < costCount2) {
+        method1 += "\n";
+        method1 += "SUCCESS!\t\t\t";
+        method1 += "COST: " + to_string(costCount1);
         solution = method1;
-    }
-    else {
+    } else {
+        method2 += "\n";
+        method2 += "SUCCESS!\t\t\t";
+        method2 += "COST: " + to_string(costCount2);
         solution = method2;
     }
     return 1;
 }
+
 //FOLLOWING ARE PRIVATE MEMBERS TO BUILD TREE
 void Jug::buildGraph() {//NO SOLUTION MEANS THAT EVENTUALLY ALL NEW NODES WILL BE REPEATS, SOLVE RETURN 0
     //cout << "start buildGraph" << endl;
     int c = 0;
-    Node* rootNode = new Node(0, 0);
+    Node *rootNode = new Node(0, 0);
+
     root = rootNode;
-    Node* cur = nullptr;
+    Node *cur = nullptr;
     string command = "";
-    queue<Node*> queuebuild;
+    queue<Node *> queuebuild;
     queuebuild.push(root);
-    while (!queuebuild.empty()){
+    while (!queuebuild.empty()) {
         cur = queuebuild.front();
         cur->index = c;
         //cout << "current state: " << cur->a << ", " << cur->b  << endl;
         //cout << "current index: " << cur->index  << endl << endl;
-        if (nodeIsSolution(cur) && getSolutionPosition(cur) == nullptr){
+        if (nodeIsSolution(cur) && getSolutionPosition(cur) == nullptr) {
             solutionNode = cur;
         }//CUR IS THE FIRST SOLUTION WHEN BUIDLING
-        else if (nodeIsSolution(cur) && getSolutionPosition(cur) != nullptr){
+        else if (nodeIsSolution(cur) && getSolutionPosition(cur) != nullptr) {
             secondSolution = cur;
         }
         cur->fa = fillA(cur);
@@ -118,40 +119,45 @@ void Jug::buildGraph() {//NO SOLUTION MEANS THAT EVENTUALLY ALL NEW NODES WILL B
         cur->pab = PourA_B(cur);
         cur->pba = PourB_A(cur);
 
-        if (aFull(cur)){
+        if (aFull(cur)) {
             cur->fa = nullptr;
             cur->pba = nullptr;
         }
-        if (bFull(cur)){
+        if (bFull(cur)) {
             cur->fb = nullptr;
             cur->pab = nullptr;
         }
-        if (aEmpty(cur)){
+        if (aEmpty(cur)) {
             cur->ea = nullptr;
             cur->pab = nullptr;
         }
-        if (bEmpty(cur)){
+        if (bEmpty(cur)) {
             cur->eb = nullptr;
             cur->pba = nullptr;
         }
-        if (search(root, cur) || nodeIsSolution(cur)){//FIXME
-            cur->fa = nullptr; cur->fb = nullptr; cur->ea = nullptr;
-            cur->eb = nullptr; cur->pab = nullptr; cur->pba = nullptr;
+        if (search(root, cur) || nodeIsSolution(cur)) {//FIXME
+            cur->fa = nullptr;
+            cur->fb = nullptr;
+            cur->ea = nullptr;
+            cur->eb = nullptr;
+            cur->pab = nullptr;
+            cur->pba = nullptr;
 
         }
         //checkWhichPtr_Using(cur);
-        if (cur->fa != nullptr) {queuebuild.push(cur->fa);}// cout << "push cur->fa" << endl;}
-        if (cur->fb != nullptr) {queuebuild.push(cur->fb);}// cout << "push cur->fb" << endl;}
-        if (cur->ea != nullptr) {queuebuild.push(cur->ea);}// cout << "push cur->ea" << endl;}
-        if (cur->eb != nullptr) {queuebuild.push(cur->eb);}// cout << "push cur->eb" << endl;}
-        if (cur->pab != nullptr) {queuebuild.push(cur->pab);}// cout << "push cur->pab" << endl;}
-        if (cur->pba != nullptr) {queuebuild.push(cur->pba);}// cout << "push cur->pba" << endl;}
+        if (cur->fa != nullptr) { queuebuild.push(cur->fa); }// cout << "push cur->fa" << endl;}
+        if (cur->fb != nullptr) { queuebuild.push(cur->fb); }// cout << "push cur->fb" << endl;}
+        if (cur->ea != nullptr) { queuebuild.push(cur->ea); }// cout << "push cur->ea" << endl;}
+        if (cur->eb != nullptr) { queuebuild.push(cur->eb); }// cout << "push cur->eb" << endl;}
+        if (cur->pab != nullptr) { queuebuild.push(cur->pab); }// cout << "push cur->pab" << endl;}
+        if (cur->pba != nullptr) { queuebuild.push(cur->pba); }// cout << "push cur->pba" << endl;}
         vecNodes.push_back(cur);
         queuebuild.pop();
         c++;
     }
 }
-bool Jug::isProblemValid(){
+
+bool Jug::isProblemValid() {
     //VALID IF 0 < Ca ≤ Cb and N ≤ Cb ≤ 1000
     //cout << "start isProblemValid" << endl;
     bool valid = false;
@@ -161,26 +167,39 @@ bool Jug::isProblemValid(){
     //cout << "end isProblemValid" << endl;
     return valid;
 }//used in +solve function. CHECK PRE CONDITIONS. IF INVALID, SOLVE RETURNS -1
-bool Jug::nodeIsSolution(Node* n) {
+bool Jug::nodeIsSolution(Node *n) {
+    // cout << "n->a: " << n->a << endl;
+    // cout << "n->b: " << n->b << endl;
+
+    /*
     if (n->a == 0 && n->b == N) {
         return true;
     }
     return false;
+     */
+
+    return (n->a == this->N || n->b == this->N);
+
 }//check after each node is made
 
-Node* Jug::getSolutionPosition(Node* excludeNode) {
-    if (solutionNode == nullptr){
+Node *Jug::getSolutionPosition(Node *excludeNode) {
+    if (solutionNode == nullptr) {
         return nullptr;
     }
-    queue<Node*> myQ;
-    Node* cur = nullptr;
+    queue<Node *> myQ;
+    Node *cur = nullptr;
 
     myQ.push(root);
     while (!myQ.empty()) {
         cur = myQ.front();
-        if (cur == excludeNode){}
+        if (cur == excludeNode) {}
         else {
+            /*
             if (cur->a == 0 && cur->b == N){
+                return cur;
+            }
+             */
+            if (cur->a == this->N || cur->b == this->N) {
                 return cur;
             }
         }
@@ -195,63 +214,68 @@ Node* Jug::getSolutionPosition(Node* excludeNode) {
     }
     return nullptr;
 }
+
 bool Jug::solutionExists() {
     if (solutionNode != nullptr) return true;
     else return false;
 }//check after built graph
 
-bool Jug::search(Node* rootNode, Node* excludeNode) {
+bool Jug::search(Node *rootNode, Node *excludeNode) {
     int limit = excludeNode->index;
-    if (excludeNode == root){
+    if (excludeNode == root) {
         return false;
     }
-    for (int i = 0; i < limit - 1; i++){
-        if (vecNodes.at(i)->a == excludeNode->a && vecNodes.at(i)->b == excludeNode->b){
+    for (int i = 0; i < limit - 1; i++) {
+        if (vecNodes.at(i)->a == excludeNode->a && vecNodes.at(i)->b == excludeNode->b) {
             return true;
         }
     }
     return false;
 }//IF NODE EXISTS, THEN ALL PTRS OF THE NEW NODE IS NULL
 
-bool Jug::aEmpty(Node* n) {
+bool Jug::aEmpty(Node *n) {
     return (n->a == 0);
 }//Empty_A = NULL, Pour_A-B = NULL
-bool Jug::aFull(Node* n) {
+bool Jug::aFull(Node *n) {
     return (n->a == CapA);
 }//Fill_A = NULL, Pour_B-A = NULL
-bool Jug::bEmpty(Node* n) {
+bool Jug::bEmpty(Node *n) {
     return (n->b == 0);
 }//Empty_B = NULL, Pour_B-A = NULL
-bool Jug::bFull(Node* n) {
+bool Jug::bFull(Node *n) {
     return (n->b == CapB);
 }//Fill_B = NULL, Pour_B-A = NULL
 
-Node* Jug::fillA(Node* n) {//PARENT OF THE NEW PTS IS SET TO N
-    Node* faNode = new Node(n->a, n->b);
+Node *Jug::fillA(Node *n) {//PARENT OF THE NEW PTS IS SET TO N
+    Node *faNode = new Node(n->a, n->b);
     faNode->a = CapA;
     faNode->parent = n;
     return faNode;
 }
-Node* Jug::fillB(Node* n) {
-    Node* fbNode = new Node(n->a, n->b);
+
+Node *Jug::fillB(Node *n) {
+    Node *fbNode = new Node(n->a, n->b);
     fbNode->b = CapB;
     fbNode->parent = n;
     return fbNode;
 }
-Node* Jug::emptyA(Node* n) {
-    Node* eaNode = new Node(n->a, n->b);
+
+Node *Jug::emptyA(Node *n) {
+    Node *eaNode = new Node(n->a, n->b);
     eaNode->a = 0;
     eaNode->parent = n;
     return eaNode;
 }
-Node* Jug::emptyB(Node* n) {
-    Node* ebNode = new Node(n->a, n->b);
+
+Node *Jug::emptyB(Node *n) {
+    Node *ebNode = new Node(n->a, n->b);
     ebNode->b = 0;
     ebNode->parent = n;
     return ebNode;
 }
-Node* Jug::PourA_B(Node* n) {
-    Node* pabNode = new Node(n->a, n->b);
+
+Node *Jug::PourA_B(Node *n) {
+    Node *pabNode = new Node(n->a, n->b);
     int space_left_B = CapB - n->b;
     if (space_left_B >= n->a) {
         pabNode->a = 0;
@@ -265,14 +289,14 @@ Node* Jug::PourA_B(Node* n) {
     pabNode->parent = n;
     return pabNode;
 }
-Node* Jug::PourB_A(Node* n) {
-    Node* pbaNode = new Node(n->a, n->b);
+
+Node *Jug::PourB_A(Node *n) {
+    Node *pbaNode = new Node(n->a, n->b);
     int space_in_A = CapA - pbaNode->a;
     if (pbaNode->b <= space_in_A) {
         pbaNode->a += pbaNode->b;
         pbaNode->b = 0;
-    }
-    else  {
+    } else {
         pbaNode->b -= space_in_A;
         pbaNode->a = CapA;
     }
@@ -280,20 +304,37 @@ Node* Jug::PourB_A(Node* n) {
     return pbaNode;
 }
 
-string Jug::getMethodString(Node* prev, Node* curr) {
+string Jug::getMethodString(Node *prev, Node *curr) {
     string command = "";
-    if (curr == prev->fa) command = "fill A\n";
-    if (curr == prev->fb) command = "fill B\n";
-    if (curr == prev->ea) command = "empty A\n";
-    if (curr == prev->eb) command = "empty B\n";
-    if (curr == prev->pab) {
-        command = "pour A B\n";
+    if (curr == prev->fa) {
+        command = "FILL    A\t\t";
+        command += to_string(this->cfA) + "\t\t";
     }
-    if (curr == prev->pba) command = "pour B A\n";
+    if (curr == prev->fb) {
+        command = "FILL    B\t\t";
+        command += to_string(this->cfB) + "\t\t";
+    }
+    if (curr == prev->ea) {
+        command = "EMPTY   A\t\t";
+        command += to_string(this->ceA) + "\t\t";
+    }
+    if (curr == prev->eb) {
+        command = "EMPTY   B\t\t";
+        command += to_string(this->ceB) + "\t\t";
+    }
+    if (curr == prev->pab) {
+        command = "POUR A->B\t\t";
+        command += to_string(this->cpAB) + "\t\t";
+    }
+    if (curr == prev->pba) {
+        command = "POUR B->A\t\t";
+        command += to_string(this->cpBA) + "\t\t";
+    }
+    command = command + "(" + to_string(curr->a) + ", " + to_string(curr->b) + ")\n";
     return command;
 }
 
-int Jug::getMethodCost(Node* prev, Node* curr) {
+int Jug::getMethodCost(Node *prev, Node *curr) {
     int cost = 0;
     if (curr == prev->fa) cost = cfA;
     if (curr == prev->fb) cost = cfB;
